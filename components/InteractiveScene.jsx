@@ -111,15 +111,18 @@ function Reactor({ progress }) {
 
   useFrame((state, delta) => {
     const p = progress.get();
+    const pointer = state.pointer;
     const opacity = 1 - range(p, 0.13, 0.25);
     setGroupOpacity(group.current, opacity);
     if (!group.current || !cradle.current) return;
-    group.current.position.x = THREE.MathUtils.lerp(0.6, 0.1, range(p, 0.02, 0.16));
+    const baseX = THREE.MathUtils.lerp(0.6, 0.1, range(p, 0.02, 0.16));
+    group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, baseX + pointer.x * 0.18, 0.06);
+    group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, pointer.y * 0.16, 0.06);
     group.current.position.z = THREE.MathUtils.lerp(0, -2.2, range(p, 0.05, 0.21));
     group.current.scale.setScalar(THREE.MathUtils.lerp(1, 0.68, range(p, 0.08, 0.21)));
-    cradle.current.rotation.x += delta * 0.1;
-    cradle.current.rotation.y += delta * 0.22;
-    cradle.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.38) * 0.12;
+    cradle.current.rotation.x += delta * 0.1 + pointer.y * 0.003;
+    cradle.current.rotation.y += delta * 0.22 + pointer.x * 0.004;
+    cradle.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.38) * 0.12 + pointer.x * 0.18;
   });
 
   return (
@@ -174,11 +177,15 @@ function TitanOrderBook({ progress }) {
 
   useFrame((state) => {
     const p = progress.get();
+    const pointer = state.pointer;
     const opacity = bell(p, 0.15, 0.42);
     setGroupOpacity(group.current, opacity);
     if (!group.current) return;
-    group.current.position.x = THREE.MathUtils.lerp(3.2, 0, range(p, 0.14, 0.25));
-    group.current.rotation.y = -0.35 + Math.sin(state.clock.elapsedTime * 0.45) * 0.08;
+    const baseX = THREE.MathUtils.lerp(3.2, 0, range(p, 0.14, 0.25));
+    group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, baseX + pointer.x * 0.16, 0.06);
+    group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, pointer.y * 0.08, 0.06);
+    group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, pointer.y * 0.08, 0.05);
+    group.current.rotation.y = -0.35 + Math.sin(state.clock.elapsedTime * 0.45) * 0.08 + pointer.x * 0.16;
     group.current.children.forEach((child, index) => {
       if (child.type !== "Mesh" || !child.geometry?.type?.includes("Box")) return;
       const wave = Math.sin(state.clock.elapsedTime * 3.1 + index * 0.48);
@@ -270,12 +277,15 @@ function VajraField({ progress }) {
 
   useFrame((state) => {
     const p = progress.get();
+    const pointer = state.pointer;
     const opacity = bell(p, 0.34, 0.62);
     setGroupOpacity(group.current, opacity);
     if (!group.current) return;
-    group.current.rotation.y = state.clock.elapsedTime * 0.2 + range(p, 0.34, 0.62) * 0.65;
-    group.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.42) * 0.12;
-    group.current.position.x = THREE.MathUtils.lerp(-2.7, 0.1, range(p, 0.33, 0.44));
+    group.current.rotation.y = state.clock.elapsedTime * 0.2 + range(p, 0.34, 0.62) * 0.65 + pointer.x * 0.22;
+    group.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.42) * 0.12 + pointer.y * 0.16;
+    const baseX = THREE.MathUtils.lerp(-2.7, 0.1, range(p, 0.33, 0.44));
+    group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, baseX + pointer.x * 0.12, 0.05);
+    group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, pointer.y * 0.1, 0.05);
   });
 
   return (
@@ -301,14 +311,17 @@ function CompressionCore({ progress }) {
 
   useFrame((state) => {
     const p = progress.get();
+    const pointer = state.pointer;
     const opacity = bell(p, 0.54, 0.78);
     setGroupOpacity(group.current, opacity);
     if (!group.current) return;
-    group.current.position.y = THREE.MathUtils.lerp(-1.6, 0, range(p, 0.52, 0.62));
-    outer.current.rotation.x += 0.008;
-    outer.current.rotation.y += 0.011;
-    inner.current.rotation.x -= 0.01;
-    inner.current.rotation.y += 0.009;
+    const baseY = THREE.MathUtils.lerp(-1.6, 0, range(p, 0.52, 0.62));
+    group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, pointer.x * 0.12, 0.05);
+    group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, baseY + pointer.y * 0.1, 0.05);
+    outer.current.rotation.x += 0.008 + pointer.y * 0.002;
+    outer.current.rotation.y += 0.011 + pointer.x * 0.002;
+    inner.current.rotation.x -= 0.01 + pointer.y * 0.003;
+    inner.current.rotation.y += 0.009 + pointer.x * 0.003;
     inner.current.scale.setScalar(THREE.MathUtils.lerp(1.05, 0.68, range(p, 0.58, 0.73)));
     inner.current.position.y = Math.sin(state.clock.elapsedTime * 1.1) * 0.05;
   });
@@ -333,11 +346,15 @@ function SkillConstellation({ progress }) {
 
   useFrame((state) => {
     const p = progress.get();
+    const pointer = state.pointer;
     const opacity = range(p, 0.72, 0.92);
     setGroupOpacity(group.current, opacity);
     if (!group.current) return;
-    group.current.rotation.y = state.clock.elapsedTime * 0.24;
-    group.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.24) * 0.08;
+    group.current.rotation.y = state.clock.elapsedTime * 0.24 + pointer.x * 0.2;
+    group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, pointer.y * 0.14, 0.04);
+    group.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.24) * 0.08 + pointer.x * 0.08;
+    group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, pointer.x * 0.1, 0.04);
+    group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, pointer.y * 0.1, 0.04);
     group.current.scale.setScalar(THREE.MathUtils.lerp(0.7, 1.08, range(p, 0.74, 0.9)));
   });
 
@@ -376,6 +393,19 @@ function SceneCamera({ progress }) {
   return null;
 }
 
+function PointerLight() {
+  const light = useRef();
+
+  useFrame(({ pointer }) => {
+    if (!light.current) return;
+    light.current.position.x = THREE.MathUtils.lerp(light.current.position.x, pointer.x * 3.6, 0.08);
+    light.current.position.y = THREE.MathUtils.lerp(light.current.position.y, pointer.y * 2.1, 0.08);
+    light.current.position.z = THREE.MathUtils.lerp(light.current.position.z, 2.8, 0.08);
+  });
+
+  return <pointLight ref={light} position={[0, 0, 2.8]} intensity={0.85} color="#e0f2fe" />;
+}
+
 function CinematicScene({ progress }) {
   return (
     <>
@@ -385,6 +415,7 @@ function CinematicScene({ progress }) {
       <directionalLight position={[3.2, 4.8, 5.5]} intensity={1.25} />
       <pointLight position={[-3.8, -1.5, 3.2]} intensity={1.7} color="#f97316" />
       <pointLight position={[3.4, 2.2, 2.6]} intensity={1.5} color="#38bdf8" />
+      <PointerLight />
       <SceneCamera progress={progress} />
       <Reactor progress={progress} />
       <TitanOrderBook progress={progress} />

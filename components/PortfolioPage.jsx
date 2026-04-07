@@ -26,6 +26,12 @@ const signals = [
   ["Scale", "8x H100 run"]
 ];
 
+const finalCards = [
+  ["Target", "High-intensity engineering internships at AI labs and infrastructure teams."],
+  ["Focus", "Rust systems, distributed search, model compression, and applied AI evaluation."],
+  ["Review path", "Start with Titan, scan the proof rail, then open the resume for the full record."]
+];
+
 const chapters = [
   {
     id: "hero",
@@ -201,12 +207,26 @@ export default function PortfolioPage() {
               )}
 
               {chapter.final && (
-                <div className="contact-grid">
-                  <a href={links.email}>Email</a>
-                  <a href={links.github} target="_blank" rel="noreferrer">GitHub</a>
-                  <a href={links.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
-                  <a href={links.resume} download>Resume</a>
-                </div>
+                <>
+                  <div className="final-deck">
+                    {finalCards.map(([label, detail]) => (
+                      <article className="final-card" key={label}>
+                        <span>{label}</span>
+                        <p>{detail}</p>
+                      </article>
+                    ))}
+                  </div>
+                  <div className="contact-grid">
+                    <a href={links.email}>Email</a>
+                    <a href={links.github} target="_blank" rel="noreferrer">GitHub</a>
+                    <a href={links.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
+                    <a href={links.resume} download>Resume</a>
+                  </div>
+                  <p className="final-note">
+                    Send the hardest systems problem on your backlog. I will bring benchmarks,
+                    traces, and taste.
+                  </p>
+                </>
               )}
             </motion.article>
           </section>

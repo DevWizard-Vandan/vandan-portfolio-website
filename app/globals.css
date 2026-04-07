@@ -151,7 +151,7 @@ a {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
   gap: 10px;
-  pointer-events: none;
+  pointer-events: auto;
 }
 
 .proof-rail article {
@@ -162,6 +162,13 @@ a {
   background: rgba(5, 10, 20, 0.62);
   box-shadow: 0 22px 80px rgba(0, 0, 0, 0.22);
   backdrop-filter: blur(18px);
+  transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
+}
+
+.proof-rail article:hover {
+  border-color: rgba(56, 189, 248, 0.5);
+  background: rgba(9, 17, 32, 0.82);
+  transform: translateY(-3px);
 }
 
 .proof-rail span,
@@ -221,6 +228,13 @@ a {
   background: var(--panel);
   box-shadow: 0 26px 120px rgba(0, 0, 0, 0.34);
   backdrop-filter: blur(22px);
+  transition: border-color 200ms ease, transform 200ms ease, background 200ms ease;
+}
+
+.chapter-card:hover {
+  border-color: rgba(56, 189, 248, 0.42);
+  background: rgba(9, 16, 31, 0.74);
+  transform: translateY(-2px);
 }
 
 .chapter-wide .chapter-card {
@@ -230,6 +244,10 @@ a {
   background: transparent;
   box-shadow: none;
   backdrop-filter: none;
+}
+
+.chapter-contact .chapter-card {
+  width: min(860px, 100%);
 }
 
 .chapter-marker {
@@ -342,6 +360,50 @@ a {
   grid-template-columns: repeat(4, minmax(0, 1fr));
 }
 
+.final-deck {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 10px;
+  margin-top: 28px;
+}
+
+.final-card {
+  min-height: 154px;
+  border: 1px solid rgba(226, 232, 240, 0.16);
+  border-radius: var(--radius-card);
+  padding: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(255, 255, 255, 0.03)),
+    rgba(6, 12, 24, 0.58);
+  transition: border-color 180ms ease, transform 180ms ease, background 180ms ease;
+}
+
+.final-card:hover {
+  border-color: rgba(249, 115, 22, 0.5);
+  background:
+    linear-gradient(180deg, rgba(249, 115, 22, 0.12), rgba(255, 255, 255, 0.04)),
+    rgba(7, 13, 25, 0.75);
+  transform: translateY(-3px);
+}
+
+.final-card span {
+  display: block;
+  color: var(--cyan);
+  font-family: "JetBrains Mono", ui-monospace, SFMono-Regular, Menlo, Consolas, monospace;
+  font-size: 0.7rem;
+  font-weight: 900;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+}
+
+.final-card p {
+  margin: 16px 0 0;
+  color: var(--ink);
+  font-size: 0.95rem;
+  font-weight: 650;
+  line-height: 1.58;
+}
+
 .contact-grid a {
   border: 1px solid var(--line);
   padding: 0 14px;
@@ -353,6 +415,13 @@ a {
 .contact-grid a:hover {
   border-color: rgba(56, 189, 248, 0.7);
   background: rgba(56, 189, 248, 0.1);
+}
+
+.final-note {
+  margin: 22px 0 0;
+  color: var(--muted);
+  font-size: 1rem;
+  line-height: 1.65;
 }
 
 .scene-loading,
@@ -444,6 +513,14 @@ a {
     background: var(--panel-strong);
     box-shadow: 0 26px 100px rgba(0, 0, 0, 0.38);
     backdrop-filter: blur(18px);
+  }
+
+  .final-deck {
+    grid-template-columns: 1fr;
+  }
+
+  .final-card {
+    min-height: auto;
   }
 }
 
