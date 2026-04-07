@@ -32,8 +32,8 @@ function useReducedStage() {
 
 function useTransparentMaterial(color, options = {}) {
   return useMemo(
-    () =>
-      new THREE.MeshStandardMaterial({
+    () => {
+      const material = new THREE.MeshStandardMaterial({
         color,
         transparent: true,
         opacity: 0,
@@ -42,8 +42,12 @@ function useTransparentMaterial(color, options = {}) {
         emissive: options.emissive ?? color,
         emissiveIntensity: options.emissiveIntensity ?? 0.08,
         wireframe: options.wireframe ?? false
-      }),
-    [color, options.emissive, options.emissiveIntensity, options.metalness, options.roughness, options.wireframe]
+      });
+
+      material.userData.baseOpacity = options.opacity ?? 1;
+      return material;
+    },
+    [color, options.emissive, options.emissiveIntensity, options.metalness, options.opacity, options.roughness, options.wireframe]
   );
 }
 
@@ -51,44 +55,112 @@ function setGroupOpacity(group, opacity) {
   if (!group) return;
   group.traverse((child) => {
     if (!child.material) return;
-    child.material.opacity = opacity;
+    const baseOpacity = child.material.userData.baseOpacity ?? 1;
+    child.material.opacity = baseOpacity * opacity;
     child.material.transparent = true;
-    child.material.depthWrite = opacity > 0.92;
+    child.material.depthWrite = baseOpacity * opacity > 0.92;
   });
 }
 
 function Reactor({ progress }) {
   const group = useRef();
-  const core = useRef();
-  const shell = useTransparentMaterial("#f8fafc", { metalness: 0.78, roughness: 0.18 });
-  const edge = useTransparentMaterial("#f97316", {
+  const cradle = useRef();
+  const core = useMemo(() => {
+    const material = new THREE.MeshPhysicalMaterial({
+      color: "#dff7ff",
+      transparent: true,
+      opacity: 0,
+      metalness: 0,
+      roughness: 0.08,
+      transmission: 0.72,
+      thickness: 0.9,
+      ior: 1.35,
+      emissive: "#38bdf8",
+      emissiveIntensity: 0.18
+    });
+    material.userData.baseOpacity = 0.32;
+    return material;
+  }, []);
+  const innerGlow = useTransparentMaterial("#f8fafc", {
     emissive: "#f97316",
-    emissiveIntensity: 0.45,
-    roughness: 0.16
+    emissiveIntensity: 0.8,
+    opacity: 0.76,
+    roughness: 0.18
   });
+  const filament = useTransparentMaterial("#38bdf8", {
+    emissive: "#38bdf8",
+    emissiveIntensity: 0.7,
+    opacity: 0.62,
+    metalness: 0.15,
+    roughness: 0.18
+  });
+  const amber = useTransparentMaterial("#f97316", {
+    emissive: "#f97316",
+    emissiveIntensity: 0.5,
+    opacity: 0.48,
+    roughness: 0.2
+  });
+  const ghost = useTransparentMaterial("#e2e8f0", {
+    emissive: "#38bdf8",
+    emissiveIntensity: 0.12,
+    opacity: 0.16,
+    wireframe: true,
+    roughness: 0.5
+  });
+  const particles = useMemo(() => Array.from({ length: 22 }, (_, index) => index), []);
 
   useFrame((state, delta) => {
     const p = progress.get();
     const opacity = 1 - range(p, 0.13, 0.25);
     setGroupOpacity(group.current, opacity);
-    if (!group.current || !core.current) return;
-    group.current.rotation.x += delta * 0.18;
-    group.current.rotation.y += delta * 0.32;
+    if (!group.current || !cradle.current) return;
+    group.current.position.x = THREE.MathUtils.lerp(0.6, 0.1, range(p, 0.02, 0.16));
     group.current.position.z = THREE.MathUtils.lerp(0, -2.2, range(p, 0.05, 0.21));
-    group.current.scale.setScalar(THREE.MathUtils.lerp(1, 0.7, range(p, 0.08, 0.21)));
-    core.current.position.y = Math.sin(state.clock.elapsedTime * 1.3) * 0.08;
+    group.current.scale.setScalar(THREE.MathUtils.lerp(1, 0.68, range(p, 0.08, 0.21)));
+    cradle.current.rotation.x += delta * 0.1;
+    cradle.current.rotation.y += delta * 0.22;
+    cradle.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.38) * 0.12;
   });
 
   return (
-    <group ref={group}>
-      <mesh ref={core} material={shell} castShadow>
-        <icosahedronGeometry args={[1.32, 2]} />
-      </mesh>
-      {[0, 1, 2].map((index) => (
-        <mesh key={index} material={edge} rotation={[index * 0.9, index * 0.75, index * 0.35]}>
-          <torusGeometry args={[1.82 + index * 0.24, 0.012, 16, 180]} />
+    <group ref={group} position={[0.6, 0, 0]}>
+      <group ref={cradle}>
+        <mesh material={core}>
+          <sphereGeometry args={[0.72, 48, 48]} />
         </mesh>
-      ))}
+        <mesh material={ghost}>
+          <icosahedronGeometry args={[1.26, 2]} />
+        </mesh>
+        <mesh material={innerGlow}>
+          <sphereGeometry args={[0.1, 24, 24]} />
+        </mesh>
+        {[0, 1, 2, 3].map((index) => (
+          <mesh
+            key={index}
+            material={index % 2 === 0 ? filament : amber}
+            rotation={[Math.PI / 2.4 + index * 0.48, index * 0.72, index * 0.33]}
+          >
+            <torusGeometry args={[1.32 + index * 0.17, 0.006, 10, 220]} />
+          </mesh>
+        ))}
+        {particles.map((particle) => {
+          const angle = particle * 0.83;
+          const radius = 1.08 + (particle % 5) * 0.13;
+          return (
+            <mesh
+              key={particle}
+              material={particle % 3 === 0 ? amber : filament}
+              position={[
+                Math.cos(angle) * radius,
+                Math.sin(particle * 1.41) * 0.84,
+                Math.sin(angle) * radius
+              ]}
+            >
+              <sphereGeometry args={[0.018 + (particle % 4) * 0.006, 12, 12]} />
+            </mesh>
+          );
+        })}
+      </group>
     </group>
   );
 }
@@ -157,7 +229,11 @@ function VajraField({ progress }) {
   const node = useTransparentMaterial("#e0f2fe", { emissive: "#38bdf8", emissiveIntensity: 0.25 });
   const hub = useTransparentMaterial("#f8fafc", { emissive: "#0ea5e9", emissiveIntensity: 0.5 });
   const edge = useMemo(
-    () => new THREE.LineBasicMaterial({ color: "#38bdf8", transparent: true, opacity: 0 }),
+    () => {
+      const material = new THREE.LineBasicMaterial({ color: "#38bdf8", transparent: true, opacity: 0 });
+      material.userData.baseOpacity = 0.54;
+      return material;
+    },
     []
   );
   const nodes = useMemo(
@@ -195,7 +271,6 @@ function VajraField({ progress }) {
   useFrame((state) => {
     const p = progress.get();
     const opacity = bell(p, 0.34, 0.62);
-    edge.opacity = opacity * 0.54;
     setGroupOpacity(group.current, opacity);
     if (!group.current) return;
     group.current.rotation.y = state.clock.elapsedTime * 0.2 + range(p, 0.34, 0.62) * 0.65;
