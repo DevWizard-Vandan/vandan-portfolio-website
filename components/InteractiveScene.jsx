@@ -1,17 +1,25 @@
 "use client";
 
 import { Canvas, useFrame } from "@react-three/fiber";
+import { useScroll } from "framer-motion";
 import { useEffect, useMemo, useRef, useState } from "react";
 import * as THREE from "three";
 
-function useMobileFallback() {
+const clamp = (value, min = 0, max = 1) => Math.min(max, Math.max(min, value));
+const range = (progress, start, end) => clamp((progress - start) / (end - start));
+const bell = (progress, start, end) => {
+  const t = range(progress, start, end);
+  return Math.sin(t * Math.PI);
+};
+
+function useReducedStage() {
   const [fallback, setFallback] = useState(true);
 
   useEffect(() => {
     const update = () => {
-      const isMobile = window.matchMedia("(max-width: 760px)").matches;
+      const mobile = window.matchMedia("(max-width: 760px)").matches;
       const reduced = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
-      setFallback(isMobile || reduced);
+      setFallback(mobile || reduced);
     };
 
     update();
@@ -22,92 +30,115 @@ function useMobileFallback() {
   return fallback;
 }
 
-function Rig({ children }) {
-  const group = useRef();
-
-  useFrame((state) => {
-    if (!group.current) return;
-    const x = (state.pointer.y || 0) * 0.18;
-    const y = (state.pointer.x || 0) * 0.25;
-    group.current.rotation.x = THREE.MathUtils.lerp(group.current.rotation.x, x, 0.04);
-    group.current.rotation.y = THREE.MathUtils.lerp(group.current.rotation.y, y, 0.04);
-  });
-
-  return <group ref={group}>{children}</group>;
-}
-
-function HeroObject() {
-  const mesh = useRef();
-  const ring = useRef();
-
-  useFrame((state, delta) => {
-    mesh.current.rotation.x += delta * 0.22;
-    mesh.current.rotation.y += delta * 0.34;
-    ring.current.rotation.z -= delta * 0.18;
-    mesh.current.position.y = Math.sin(state.clock.elapsedTime * 1.1) * 0.08;
-  });
-
-  return (
-    <Rig>
-      <mesh ref={mesh} castShadow receiveShadow>
-        <icosahedronGeometry args={[1.35, 1]} />
-        <meshStandardMaterial color="#f8fafc" metalness={0.56} roughness={0.22} />
-      </mesh>
-      <mesh ref={ring} rotation={[Math.PI / 2.6, 0, 0]}>
-        <torusGeometry args={[1.78, 0.018, 16, 120]} />
-        <meshStandardMaterial color="#38bdf8" emissive="#0369a1" emissiveIntensity={0.22} />
-      </mesh>
-      <mesh rotation={[0, Math.PI / 2.2, 0]}>
-        <torusGeometry args={[2.05, 0.012, 16, 120]} />
-        <meshStandardMaterial color="#cbd5e1" metalness={0.6} roughness={0.28} />
-      </mesh>
-    </Rig>
+function useTransparentMaterial(color, options = {}) {
+  return useMemo(
+    () =>
+      new THREE.MeshStandardMaterial({
+        color,
+        transparent: true,
+        opacity: 0,
+        metalness: options.metalness ?? 0.35,
+        roughness: options.roughness ?? 0.28,
+        emissive: options.emissive ?? color,
+        emissiveIntensity: options.emissiveIntensity ?? 0.08,
+        wireframe: options.wireframe ?? false
+      }),
+    [color, options.emissive, options.emissiveIntensity, options.metalness, options.roughness, options.wireframe]
   );
 }
 
-function TitanBars() {
+function setGroupOpacity(group, opacity) {
+  if (!group) return;
+  group.traverse((child) => {
+    if (!child.material) return;
+    child.material.opacity = opacity;
+    child.material.transparent = true;
+    child.material.depthWrite = opacity > 0.92;
+  });
+}
+
+function Reactor({ progress }) {
   const group = useRef();
-  const bars = useMemo(() => Array.from({ length: 26 }, (_, i) => i), []);
+  const core = useRef();
+  const shell = useTransparentMaterial("#f8fafc", { metalness: 0.78, roughness: 0.18 });
+  const edge = useTransparentMaterial("#f97316", {
+    emissive: "#f97316",
+    emissiveIntensity: 0.45,
+    roughness: 0.16
+  });
+
+  useFrame((state, delta) => {
+    const p = progress.get();
+    const opacity = 1 - range(p, 0.13, 0.25);
+    setGroupOpacity(group.current, opacity);
+    if (!group.current || !core.current) return;
+    group.current.rotation.x += delta * 0.18;
+    group.current.rotation.y += delta * 0.32;
+    group.current.position.z = THREE.MathUtils.lerp(0, -2.2, range(p, 0.05, 0.21));
+    group.current.scale.setScalar(THREE.MathUtils.lerp(1, 0.7, range(p, 0.08, 0.21)));
+    core.current.position.y = Math.sin(state.clock.elapsedTime * 1.3) * 0.08;
+  });
+
+  return (
+    <group ref={group}>
+      <mesh ref={core} material={shell} castShadow>
+        <icosahedronGeometry args={[1.32, 2]} />
+      </mesh>
+      {[0, 1, 2].map((index) => (
+        <mesh key={index} material={edge} rotation={[index * 0.9, index * 0.75, index * 0.35]}>
+          <torusGeometry args={[1.82 + index * 0.24, 0.012, 16, 180]} />
+        </mesh>
+      ))}
+    </group>
+  );
+}
+
+function TitanOrderBook({ progress }) {
+  const group = useRef();
+  const bids = useTransparentMaterial("#22c55e", { emissive: "#166534", emissiveIntensity: 0.24 });
+  const asks = useTransparentMaterial("#f97316", { emissive: "#9a3412", emissiveIntensity: 0.24 });
+  const grid = useTransparentMaterial("#334155", { wireframe: true, roughness: 0.8, emissiveIntensity: 0 });
+  const bars = useMemo(() => Array.from({ length: 34 }, (_, i) => i), []);
 
   useFrame((state) => {
+    const p = progress.get();
+    const opacity = bell(p, 0.15, 0.42);
+    setGroupOpacity(group.current, opacity);
     if (!group.current) return;
-    group.current.rotation.y += 0.003;
-    group.current.children.forEach((bar, index) => {
-      const wave = Math.sin(state.clock.elapsedTime * 2.4 + index * 0.7);
-      const height = 0.35 + Math.abs(wave) * (index % 2 === 0 ? 1.4 : 1.0);
-      bar.scale.y = THREE.MathUtils.lerp(bar.scale.y, height, 0.08);
-      bar.position.y = (bar.scale.y - 1) * 0.22;
+    group.current.position.x = THREE.MathUtils.lerp(3.2, 0, range(p, 0.14, 0.25));
+    group.current.rotation.y = -0.35 + Math.sin(state.clock.elapsedTime * 0.45) * 0.08;
+    group.current.children.forEach((child, index) => {
+      if (child.type !== "Mesh" || !child.geometry?.type?.includes("Box")) return;
+      const wave = Math.sin(state.clock.elapsedTime * 3.1 + index * 0.48);
+      const height = 0.35 + Math.abs(wave) * (index % 3 === 0 ? 1.6 : 1.05);
+      child.scale.y = THREE.MathUtils.lerp(child.scale.y, height, 0.08);
+      child.position.y = -0.72 + child.scale.y * 0.32;
     });
   });
 
   return (
-    <Rig>
-      <group ref={group} position={[-1.7, -0.6, 0]}>
-        {bars.map((bar) => {
-          const side = bar < 13 ? -1 : 1;
-          const offset = bar < 13 ? bar : bar - 13;
-          return (
-            <mesh key={bar} position={[side * (0.25 + offset * 0.18), 0, side * 0.2]}>
-              <boxGeometry args={[0.11, 0.55, 0.28]} />
-              <meshStandardMaterial
-                color={side < 0 ? "#0ea5e9" : "#22c55e"}
-                emissive={side < 0 ? "#075985" : "#166534"}
-                emissiveIntensity={0.18}
-                roughness={0.38}
-              />
-            </mesh>
-          );
-        })}
-      </group>
-      <mesh rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.95, 0]}>
-        <planeGeometry args={[5.1, 2.4, 12, 12]} />
-        <meshStandardMaterial color="#e2e8f0" wireframe transparent opacity={0.22} />
+    <group ref={group} position={[3.2, 0, 0]}>
+      {bars.map((bar) => {
+        const side = bar < 17 ? -1 : 1;
+        const slot = bar < 17 ? bar : bar - 17;
+        return (
+          <mesh
+            key={bar}
+            material={side < 0 ? bids : asks}
+            position={[side * (0.18 + slot * 0.14), -0.35, side * 0.22]}
+          >
+            <boxGeometry args={[0.075, 0.58, 0.3]} />
+          </mesh>
+        );
+      })}
+      <mesh material={grid} rotation={[-Math.PI / 2, 0, 0]} position={[0, -0.9, 0]}>
+        <planeGeometry args={[5.1, 2.4, 16, 8]} />
       </mesh>
-    </Rig>
+    </group>
   );
 }
 
-function Edge({ from, to }) {
+function GraphEdge({ from, to, material }) {
   const geometry = useMemo(() => {
     const lineGeometry = new THREE.BufferGeometry();
     lineGeometry.setFromPoints([new THREE.Vector3(...from), new THREE.Vector3(...to)]);
@@ -116,22 +147,30 @@ function Edge({ from, to }) {
 
   return (
     <line geometry={geometry}>
-      <lineBasicMaterial color="#38bdf8" transparent opacity={0.38} />
+      <primitive object={material} attach="material" />
     </line>
   );
 }
 
-function VajraGraph() {
+function VajraField({ progress }) {
   const group = useRef();
+  const node = useTransparentMaterial("#e0f2fe", { emissive: "#38bdf8", emissiveIntensity: 0.25 });
+  const hub = useTransparentMaterial("#f8fafc", { emissive: "#0ea5e9", emissiveIntensity: 0.5 });
+  const edge = useMemo(
+    () => new THREE.LineBasicMaterial({ color: "#38bdf8", transparent: true, opacity: 0 }),
+    []
+  );
   const nodes = useMemo(
     () => [
-      [-1.6, -0.4, 0.2],
-      [-0.9, 0.9, -0.3],
-      [-0.2, -0.8, 0.7],
-      [0.55, 0.55, -0.6],
-      [1.25, -0.25, 0.25],
-      [0.2, 1.35, 0.35],
-      [1.7, 0.82, -0.2]
+      [-1.8, -0.25, 0.4],
+      [-1.05, 1.0, -0.6],
+      [-0.42, -0.98, 0.9],
+      [0.1, 0.25, 0],
+      [0.82, 0.92, -0.72],
+      [1.4, -0.6, 0.45],
+      [1.82, 0.42, -0.18],
+      [-0.2, 1.58, 0.5],
+      [0.6, -1.45, -0.48]
     ],
     []
   );
@@ -145,133 +184,163 @@ function VajraGraph() {
       [3, 5],
       [4, 6],
       [5, 6],
-      [1, 5]
+      [1, 7],
+      [2, 8],
+      [7, 4],
+      [8, 5]
     ],
     []
   );
 
   useFrame((state) => {
-    group.current.rotation.y = state.clock.elapsedTime * 0.18;
-    group.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.5) * 0.08;
+    const p = progress.get();
+    const opacity = bell(p, 0.34, 0.62);
+    edge.opacity = opacity * 0.54;
+    setGroupOpacity(group.current, opacity);
+    if (!group.current) return;
+    group.current.rotation.y = state.clock.elapsedTime * 0.2 + range(p, 0.34, 0.62) * 0.65;
+    group.current.rotation.x = Math.sin(state.clock.elapsedTime * 0.42) * 0.12;
+    group.current.position.x = THREE.MathUtils.lerp(-2.7, 0.1, range(p, 0.33, 0.44));
   });
 
   return (
-    <Rig>
-      <group ref={group}>
-        {edges.map(([a, b]) => (
-          <Edge key={`${a}-${b}`} from={nodes[a]} to={nodes[b]} />
-        ))}
-        {nodes.map((position, index) => (
-          <mesh key={position.join(",")} position={position}>
-            <sphereGeometry args={[index === 3 ? 0.16 : 0.11, 24, 24]} />
-            <meshStandardMaterial
-              color={index === 3 ? "#0f172a" : "#f8fafc"}
-              emissive={index === 3 ? "#0ea5e9" : "#38bdf8"}
-              emissiveIntensity={index === 3 ? 0.34 : 0.14}
-              roughness={0.28}
-            />
-          </mesh>
-        ))}
-      </group>
-    </Rig>
+    <group ref={group} position={[-2.7, 0, 0]}>
+      {edges.map(([from, to]) => (
+        <GraphEdge key={`${from}-${to}`} from={nodes[from]} to={nodes[to]} material={edge} />
+      ))}
+      {nodes.map((position, index) => (
+        <mesh key={position.join(":")} position={position} material={index === 3 ? hub : node}>
+          <sphereGeometry args={[index === 3 ? 0.17 : 0.105, 24, 24]} />
+        </mesh>
+      ))}
+    </group>
   );
 }
 
-function CompressionCube() {
+function CompressionCore({ progress }) {
+  const group = useRef();
   const outer = useRef();
   const inner = useRef();
+  const shell = useTransparentMaterial("#94a3b8", { wireframe: true, roughness: 0.82 });
+  const core = useTransparentMaterial("#f97316", { emissive: "#ea580c", emissiveIntensity: 0.28 });
 
   useFrame((state) => {
-    const pulse = (Math.sin(state.clock.elapsedTime * 1.6) + 1) / 2;
-    outer.current.rotation.x += 0.006;
-    outer.current.rotation.y += 0.009;
-    inner.current.rotation.x -= 0.008;
-    inner.current.rotation.y += 0.007;
-    inner.current.scale.setScalar(0.68 + pulse * 0.18);
+    const p = progress.get();
+    const opacity = bell(p, 0.54, 0.78);
+    setGroupOpacity(group.current, opacity);
+    if (!group.current) return;
+    group.current.position.y = THREE.MathUtils.lerp(-1.6, 0, range(p, 0.52, 0.62));
+    outer.current.rotation.x += 0.008;
+    outer.current.rotation.y += 0.011;
+    inner.current.rotation.x -= 0.01;
+    inner.current.rotation.y += 0.009;
+    inner.current.scale.setScalar(THREE.MathUtils.lerp(1.05, 0.68, range(p, 0.58, 0.73)));
+    inner.current.position.y = Math.sin(state.clock.elapsedTime * 1.1) * 0.05;
   });
 
   return (
-    <Rig>
-      <mesh ref={outer}>
-        <boxGeometry args={[2.1, 2.1, 2.1, 4, 4, 4]} />
-        <meshStandardMaterial color="#94a3b8" wireframe transparent opacity={0.42} />
+    <group ref={group} position={[0, -1.6, 0]}>
+      <mesh ref={outer} material={shell}>
+        <boxGeometry args={[2.4, 2.4, 2.4, 5, 5, 5]} />
       </mesh>
-      <mesh ref={inner}>
-        <boxGeometry args={[1.25, 1.25, 1.25, 3, 3, 3]} />
-        <meshStandardMaterial
-          color="#0ea5e9"
-          emissive="#075985"
-          emissiveIntensity={0.18}
-          metalness={0.18}
-          roughness={0.34}
-        />
+      <mesh ref={inner} material={core}>
+        <boxGeometry args={[1.25, 1.25, 1.25, 4, 4, 4]} />
       </mesh>
-    </Rig>
+    </group>
   );
 }
 
-function SkillsCluster() {
+function SkillConstellation({ progress }) {
   const group = useRef();
-  const particles = useMemo(() => Array.from({ length: 36 }, (_, index) => index), []);
+  const particle = useTransparentMaterial("#e2e8f0", { emissive: "#38bdf8", emissiveIntensity: 0.14 });
+  const anchor = useTransparentMaterial("#0f172a", { emissive: "#0ea5e9", emissiveIntensity: 0.42 });
+  const points = useMemo(() => Array.from({ length: 58 }, (_, index) => index), []);
 
   useFrame((state) => {
-    group.current.rotation.y = state.clock.elapsedTime * 0.28;
-    group.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.3) * 0.08;
+    const p = progress.get();
+    const opacity = range(p, 0.72, 0.92);
+    setGroupOpacity(group.current, opacity);
+    if (!group.current) return;
+    group.current.rotation.y = state.clock.elapsedTime * 0.24;
+    group.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.24) * 0.08;
+    group.current.scale.setScalar(THREE.MathUtils.lerp(0.7, 1.08, range(p, 0.74, 0.9)));
   });
 
   return (
-    <Rig>
-      <group ref={group}>
-        <mesh>
-          <sphereGeometry args={[0.34, 32, 32]} />
-          <meshStandardMaterial color="#0f172a" emissive="#0369a1" emissiveIntensity={0.26} />
-        </mesh>
-        {particles.map((particle) => {
-          const angle = particle * 0.68;
-          const radius = 1.15 + (particle % 5) * 0.14;
-          const y = Math.sin(particle * 1.7) * 0.82;
-          return (
-            <mesh
-              key={particle}
-              position={[Math.cos(angle) * radius, y, Math.sin(angle) * radius]}
-            >
-              <sphereGeometry args={[0.045 + (particle % 3) * 0.012, 16, 16]} />
-              <meshStandardMaterial color={particle % 2 ? "#38bdf8" : "#e2e8f0"} />
-            </mesh>
-          );
-        })}
-      </group>
-    </Rig>
+    <group ref={group}>
+      <mesh material={anchor}>
+        <sphereGeometry args={[0.22, 28, 28]} />
+      </mesh>
+      {points.map((point) => {
+        const angle = point * 0.74;
+        const radius = 1.15 + (point % 7) * 0.12;
+        const y = Math.sin(point * 1.37) * 0.94;
+        return (
+          <mesh
+            key={point}
+            material={particle}
+            position={[Math.cos(angle) * radius, y, Math.sin(angle) * radius]}
+          >
+            <sphereGeometry args={[0.036 + (point % 4) * 0.009, 14, 14]} />
+          </mesh>
+        );
+      })}
+    </group>
   );
 }
 
-const sceneMap = {
-  hero: HeroObject,
-  titan: TitanBars,
-  vajra: VajraGraph,
-  compression: CompressionCube,
-  skills: SkillsCluster
-};
+function SceneCamera({ progress }) {
+  useFrame(({ camera, pointer }) => {
+    const p = progress.get();
+    camera.position.x = THREE.MathUtils.lerp(camera.position.x, pointer.x * 0.36, 0.035);
+    camera.position.y = THREE.MathUtils.lerp(camera.position.y, 0.15 + pointer.y * 0.22, 0.035);
+    camera.position.z = THREE.MathUtils.lerp(camera.position.z, THREE.MathUtils.lerp(5.8, 4.25, p), 0.045);
+    camera.lookAt(0, 0, 0);
+  });
 
-export default function InteractiveScene({ variant = "hero" }) {
-  const fallback = useMobileFallback();
-  const Scene = sceneMap[variant] || HeroObject;
+  return null;
+}
+
+function CinematicScene({ progress }) {
+  return (
+    <>
+      <color attach="background" args={["#05070d"]} />
+      <fog attach="fog" args={["#05070d", 4.8, 10.5]} />
+      <ambientLight intensity={0.45} />
+      <directionalLight position={[3.2, 4.8, 5.5]} intensity={1.25} />
+      <pointLight position={[-3.8, -1.5, 3.2]} intensity={1.7} color="#f97316" />
+      <pointLight position={[3.4, 2.2, 2.6]} intensity={1.5} color="#38bdf8" />
+      <SceneCamera progress={progress} />
+      <Reactor progress={progress} />
+      <TitanOrderBook progress={progress} />
+      <VajraField progress={progress} />
+      <CompressionCore progress={progress} />
+      <SkillConstellation progress={progress} />
+    </>
+  );
+}
+
+export default function InteractiveScene() {
+  const fallback = useReducedStage();
+  const { scrollYProgress } = useScroll();
 
   if (fallback) {
-    return <div className={`scene-fallback fallback-${variant}`} />;
+    return (
+      <div className="stage-fallback" aria-hidden="true">
+        <span />
+        <span />
+        <span />
+      </div>
+    );
   }
 
   return (
     <Canvas
-      shadows
       dpr={[1, 1.5]}
-      camera={{ position: [0, 0, variant === "hero" ? 5.2 : 4.8], fov: 42 }}
-      gl={{ antialias: true, alpha: true, powerPreference: "high-performance" }}
+      camera={{ position: [0, 0.15, 5.8], fov: 39 }}
+      gl={{ antialias: true, alpha: false, powerPreference: "high-performance" }}
     >
-      <ambientLight intensity={0.72} />
-      <directionalLight position={[4, 4, 5]} intensity={1.55} castShadow />
-      <pointLight position={[-3, -2, 3]} intensity={0.95} color="#38bdf8" />
-      <Scene />
+      <CinematicScene progress={scrollYProgress} />
     </Canvas>
   );
 }
