@@ -11,6 +11,11 @@ const InteractiveScene = dynamic(() => import("@/components/InteractiveScene"), 
   loading: () => <div className="scene-loading" aria-hidden="true" />
 });
 
+const ProjectArtifact = dynamic(() => import("@/components/ProjectArtifact"), {
+  ssr: false,
+  loading: () => <div className="artifact-loading" aria-hidden="true" />
+});
+
 const links = {
   github: "https://github.com/DevWizard-Vandan",
   titan: "https://github.com/DevWizard-Vandan/Titan",
@@ -52,6 +57,8 @@ const chapters = [
     copy:
       "A limit-order-book engine shaped around deterministic hot paths, cache-aligned order structs, SPSC rings, and measured latency instead of hopeful claims.",
     bullets: ["12.8M matches/sec", "sub-microsecond median latency", "zero-allocation hot path"],
+    artifact: "titan",
+    artifactLabel: "Interactive 3D order book: bids, asks, and changing liquidity pressure.",
     href: links.titan,
     linkLabel: "Open repository"
   },
@@ -63,6 +70,8 @@ const chapters = [
     copy:
       "A distributed vector database with leader election, log replication, write-ahead recovery, and graph search that keeps returning useful neighbors under failure.",
     bullets: ["custom Raft consensus", "HNSW search", "chaos-tested failover"],
+    artifact: "vajra",
+    artifactLabel: "Interactive 3D HNSW-style graph: connected vector nodes and search hub.",
     href: links.vajra,
     linkLabel: "Open repository"
   },
@@ -74,6 +83,8 @@ const chapters = [
     copy:
       "An experiment in smaller models and sharper measurement: compressing a 16MB weight artifact to 10.9MB with reproducible sweeps on an 8x H100 training run.",
     bullets: ["16MB to 10.9MB", "8x H100 sweep", "quality-preserving compression"],
+    artifact: "compression",
+    artifactLabel: "Interactive 3D compression cube: a weight tensor shrinking under constraint.",
     href: links.parameterGolf,
     linkLabel: "Open repository"
   },
@@ -93,7 +104,9 @@ const chapters = [
     meta: "Rust / Java / Python / C++ / TypeScript",
     copy:
       "Lock-free data structures, Raft, WAL, async I/O, HNSW, PyTorch, Docker, PostgreSQL, MinIO, Linux, and enough product instinct to keep the surface legible.",
-    bullets: ["systems", "AI/ML", "cloud", "languages"]
+    bullets: ["systems", "AI/ML", "cloud", "languages"],
+    artifact: "skills",
+    artifactLabel: "Interactive 3D skill cluster: orbiting nodes grouped around systems and AI."
   },
   {
     id: "contact",
@@ -158,6 +171,15 @@ export default function PortfolioPage() {
         </div>
       </nav>
 
+      <section className="proof-rail" aria-label="Credibility highlights">
+        {signals.map(([label, detail]) => (
+          <article key={label}>
+            <span>{label}</span>
+            <strong>{detail}</strong>
+          </article>
+        ))}
+      </section>
+
       <div className="scroll-script">
         {chapters.map((chapter) => (
           <section
@@ -186,21 +208,18 @@ export default function PortfolioPage() {
                 </div>
               )}
 
+              {chapter.artifact && (
+                <figure className="artifact-frame">
+                  <ProjectArtifact variant={chapter.artifact} />
+                  <figcaption>{chapter.artifactLabel}</figcaption>
+                </figure>
+              )}
+
               {chapter.cta && (
-                <>
-                  <div className="hero-actions">
-                    <a href="#titan" className="button primary">Begin the signal</a>
-                    <a href={links.resume} className="button secondary" download>Download resume</a>
-                  </div>
-                  <section className="proof-rail" aria-label="Credibility highlights">
-                    {signals.map(([label, detail]) => (
-                      <article key={label}>
-                        <span>{label}</span>
-                        <strong>{detail}</strong>
-                      </article>
-                    ))}
-                  </section>
-                </>
+                <div className="hero-actions">
+                  <a href="#titan" className="button primary">Begin the signal</a>
+                  <a href={links.resume} className="button secondary" download>Download resume</a>
+                </div>
               )}
 
               {chapter.href && (
