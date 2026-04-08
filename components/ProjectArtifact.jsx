@@ -215,6 +215,7 @@ const scenes = {
   titan: TitanArtifact,
   vajra: VajraArtifact,
   compression: CompressionArtifact,
+  proof: CompressionArtifact,
   skills: SkillsArtifact
 };
 

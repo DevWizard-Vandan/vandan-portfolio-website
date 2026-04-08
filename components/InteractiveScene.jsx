@@ -112,14 +112,14 @@ function Reactor({ progress }) {
   useFrame((state, delta) => {
     const p = progress.get();
     const pointer = state.pointer;
-    const opacity = 1 - range(p, 0.13, 0.25);
+    const opacity = 1 - range(p, 0.04, 0.11);
     setGroupOpacity(group.current, opacity);
     if (!group.current || !cradle.current) return;
-    const baseX = THREE.MathUtils.lerp(0.6, 0.1, range(p, 0.02, 0.16));
+    const baseX = THREE.MathUtils.lerp(0.6, 0.1, range(p, 0.02, 0.08));
     group.current.position.x = THREE.MathUtils.lerp(group.current.position.x, baseX + pointer.x * 0.18, 0.06);
     group.current.position.y = THREE.MathUtils.lerp(group.current.position.y, pointer.y * 0.16, 0.06);
-    group.current.position.z = THREE.MathUtils.lerp(0, -2.2, range(p, 0.05, 0.21));
-    group.current.scale.setScalar(THREE.MathUtils.lerp(1, 0.68, range(p, 0.08, 0.21)));
+    group.current.position.z = THREE.MathUtils.lerp(0, -2.2, range(p, 0.05, 0.12));
+    group.current.scale.setScalar(THREE.MathUtils.lerp(1, 0.68, range(p, 0.06, 0.12)));
     cradle.current.rotation.x += delta * 0.1 + pointer.y * 0.003;
     cradle.current.rotation.y += delta * 0.22 + pointer.x * 0.004;
     cradle.current.rotation.z = Math.sin(state.clock.elapsedTime * 0.38) * 0.12 + pointer.x * 0.18;
@@ -418,10 +418,6 @@ function CinematicScene({ progress }) {
       <PointerLight />
       <SceneCamera progress={progress} />
       <Reactor progress={progress} />
-      <TitanOrderBook progress={progress} />
-      <VajraField progress={progress} />
-      <CompressionCore progress={progress} />
-      <SkillConstellation progress={progress} />
     </>
   );
 }

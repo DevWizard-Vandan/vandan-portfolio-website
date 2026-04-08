@@ -95,7 +95,8 @@ const chapters = [
     meta: "published patent / peer-reviewed paper",
     copy:
       "GreenLoop marks the patent track. Cursor marks the paper track. Both sit above the fold because credentials should arrive before curiosity has to work.",
-    bullets: ["published patent", "peer-reviewed paper", "metadata links ready when public"]
+    bullets: ["published patent", "peer-reviewed paper", "metadata links ready when public"],
+    artifact: "proof"
   },
   {
     id: "skills",
@@ -188,69 +189,70 @@ export default function PortfolioPage() {
             key={chapter.id}
             aria-labelledby={`${chapter.id}-title`}
           >
-            <motion.article
-              className="chapter-card"
-              initial={{ opacity: 0, y: 30 }}
-              whileInView={{ opacity: 1, y: 0 }}
-              viewport={{ once: false, amount: 0.42 }}
-              transition={{ duration: 0.7, ease: "easeOut" }}
-            >
-              <p className="chapter-marker">{chapter.marker}</p>
-              <h1 id={`${chapter.id}-title`}>{chapter.title}</h1>
-              {chapter.meta && <p className="chapter-meta">{chapter.meta}</p>}
-              <p className="chapter-copy">{chapter.copy}</p>
-
-              {chapter.bullets && (
-                <div className="signal-list">
-                  {chapter.bullets.map((bullet) => (
-                    <span key={bullet}>{bullet}</span>
-                  ))}
-                </div>
-              )}
-
+            <div className="chapter-layout">
               {chapter.artifact && (
-                <figure className="artifact-frame">
+                <figure className={`chapter-artifact chapter-artifact-${chapter.artifact}`} aria-hidden="true">
                   <ProjectArtifact variant={chapter.artifact} />
-                  <figcaption>{chapter.artifactLabel}</figcaption>
                 </figure>
               )}
 
-              {chapter.cta && (
-                <div className="hero-actions">
-                  <a href="#titan" className="button primary">Begin the signal</a>
-                  <a href={links.resume} className="button secondary" download>Download resume</a>
-                </div>
-              )}
+              <motion.article
+                className="chapter-card"
+                initial={{ opacity: 0, y: 30 }}
+                whileInView={{ opacity: 1, y: 0 }}
+                viewport={{ once: false, amount: 0.42 }}
+                transition={{ duration: 0.7, ease: "easeOut" }}
+              >
+                <p className="chapter-marker">{chapter.marker}</p>
+                <h1 id={`${chapter.id}-title`}>{chapter.title}</h1>
+                {chapter.meta && <p className="chapter-meta">{chapter.meta}</p>}
+                <p className="chapter-copy">{chapter.copy}</p>
 
-              {chapter.href && (
-                <a href={chapter.href} target="_blank" rel="noreferrer" className="text-link">
-                  {chapter.linkLabel}
-                </a>
-              )}
-
-              {chapter.final && (
-                <>
-                  <div className="final-deck">
-                    {finalCards.map(([label, detail]) => (
-                      <article className="final-card" key={label}>
-                        <span>{label}</span>
-                        <p>{detail}</p>
-                      </article>
+                {chapter.bullets && (
+                  <div className="signal-list">
+                    {chapter.bullets.map((bullet) => (
+                      <span key={bullet}>{bullet}</span>
                     ))}
                   </div>
-                  <div className="contact-grid">
-                    <a href={links.email}>Email</a>
-                    <a href={links.github} target="_blank" rel="noreferrer">GitHub</a>
-                    <a href={links.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
-                    <a href={links.resume} download>Resume</a>
+                )}
+
+                {chapter.cta && (
+                  <div className="hero-actions">
+                    <a href="#titan" className="button primary">Begin the signal</a>
+                    <a href={links.resume} className="button secondary" download>Download resume</a>
                   </div>
-                  <p className="final-note">
-                    Send the hardest systems problem on your backlog. I will bring benchmarks,
-                    traces, and taste.
-                  </p>
-                </>
-              )}
-            </motion.article>
+                )}
+
+                {chapter.href && (
+                  <a href={chapter.href} target="_blank" rel="noreferrer" className="text-link">
+                    {chapter.linkLabel}
+                  </a>
+                )}
+
+                {chapter.final && (
+                  <>
+                    <div className="final-deck">
+                      {finalCards.map(([label, detail]) => (
+                        <article className="final-card" key={label}>
+                          <span>{label}</span>
+                          <p>{detail}</p>
+                        </article>
+                      ))}
+                    </div>
+                    <div className="contact-grid">
+                      <a href={links.email}>Email</a>
+                      <a href={links.github} target="_blank" rel="noreferrer">GitHub</a>
+                      <a href={links.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
+                      <a href={links.resume} download>Resume</a>
+                    </div>
+                    <p className="final-note">
+                      Send the hardest systems problem on your backlog. I will bring benchmarks,
+                      traces, and taste.
+                    </p>
+                  </>
+                )}
+              </motion.article>
+            </div>
           </section>
         ))}
       </div>
