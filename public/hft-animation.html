@@ -1,0 +1,449 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8"/>
+  <meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+  <title>HFT Stack — Data Flow Animation</title>
+  <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+  <style>
+    :root {
+      --bg:     #080807;
+      --y:      #facc15;
+      --c:      #22d3ee;
+      --g:      #22c55e;
+      --text:   #dddbd6;
+      --muted:  #6b6b63;
+      --border: #222220;
+      --mono:   'JetBrains Mono', monospace;
+    }
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    html, body {
+      width: 100%; height: 100%;
+      background: var(--bg);
+      font-family: var(--mono);
+      overflow: hidden;
+      -webkit-font-smoothing: antialiased;
+    }
+    canvas {
+      display: block;
+      width: 100%; height: 100%;
+    }
+  </style>
+</head>
+<body>
+<canvas id="c"></canvas>
+<script>
+const cv = document.getElementById('c');
+const cx = cv.getContext('2d');
+
+// ── COLORS ──
+const Y  = '#facc15';
+const C  = '#22d3ee';
+const G  = '#22c55e';
+const BG = '#080807';
+const MUT= '#6b6b63';
+const BOR= '#252523';
+const TXT= '#dddbd6';
+
+// ── RESIZE ──
+let W, H, DPR;
+function resize() {
+  DPR = window.devicePixelRatio || 1;
+  W = cv.offsetWidth;  H = cv.offsetHeight;
+  cv.width  = W * DPR; cv.height = H * DPR;
+  cx.scale(DPR, DPR);
+  buildLayout();
+}
+
+// ── LAYOUT ──
+let nodes = [];
+let edges = [];
+
+/* Node schema:
+   { id, x, y, w, h, label, sublabel, color, icon }
+*/
+function buildLayout() {
+  const cx0 = W / 2;
+  // We'll place nodes in a flowing pipeline
+  // Row 1: Client
+  // Row 2: Titan Gateway  →  Ring Buffer  →  Matching Engine
+  // Row 3: Fill Event (bridge)
+  // Row 4: Vajra Upsert   →  HNSW Index  →  WAL
+  // Row 5: Pattern Search API
+
+  const NW = Math.min(148, W * 0.18);
+  const NH = 56;
+  const gap = Math.min(28, W * 0.04);
+  const col3w = NW * 3 + gap * 2;
+  const startX = cx0 - col3w / 2;
+
+  // Y positions
+  const r1y = 30;
+  const r2y = r1y + NH + 60;
+  const r3y = r2y + NH + 55;
+  const r4y = r3y + NH + 55;
+  const r5y = r4y + NH + 60;
+
+  nodes = [
+    // Row 1
+    { id:'client',  x: cx0 - NW/2, y: r1y,
+      w: NW, h: NH, label:'Market Participant', sublabel:'order stream',
+      color: MUT, accent: TXT, icon:'👤' },
+
+    // Row 2 — TITAN (yellow)
+    { id:'gateway', x: startX,          y: r2y,
+      w: NW, h: NH, label:'TCP Gateway', sublabel:'titan-gateway',
+      color: Y, accent: Y, icon:'⚡' },
+    { id:'ring',    x: startX+NW+gap,   y: r2y,
+      w: NW, h: NH, label:'Ring Buffer', sublabel:'zero-alloc',
+      color: Y, accent: Y, icon:'🔄' },
+    { id:'engine',  x: startX+2*(NW+gap), y: r2y,
+      w: NW, h: NH, label:'Match Engine', sublabel:'12.8M/sec',
+      color: Y, accent: Y, icon:'⚙️' },
+
+    // Row 3 — Fill Event (bridge)
+    { id:'fill',    x: cx0 - NW/2,      y: r3y,
+      w: NW, h: NH, label:'Fill Event', sublabel:'titan → vajra',
+      color: '#a855f7', accent: '#a855f7', icon:'📤' },
+
+    // Row 4 — VAJRA (cyan)
+    { id:'upsert',  x: startX,          y: r4y,
+      w: NW, h: NH, label:'Vajra Upsert', sublabel:'vajra-server',
+      color: C, accent: C, icon:'🔷' },
+    { id:'hnsw',    x: startX+NW+gap,   y: r4y,
+      w: NW, h: NH, label:'HNSW Index', sublabel:'O(log N)',
+      color: C, accent: C, icon:'🕸️' },
+    { id:'wal',     x: startX+2*(NW+gap), y: r4y,
+      w: NW, h: NH, label:'WAL + Raft', sublabel:'durability',
+      color: C, accent: C, icon:'📋' },
+
+    // Row 5
+    { id:'search',  x: cx0 - NW/2,      y: r5y,
+      w: NW, h: NH, label:'Pattern Search', sublabel:'ANN results',
+      color: G, accent: G, icon:'🔍' },
+  ];
+
+  // Map id → node
+  const N = {};
+  nodes.forEach(n => N[n.id] = n);
+
+  // Helper: edge port centers
+  function bottom(n) { return { x: n.x + n.w/2, y: n.y + n.h }; }
+  function top(n)    { return { x: n.x + n.w/2, y: n.y }; }
+  function right(n)  { return { x: n.x + n.w,   y: n.y + n.h/2 }; }
+  function left(n)   { return { x: n.x,          y: n.y + n.h/2 }; }
+
+  edges = [
+    { from: bottom(N.client),  to: top(N.gateway),  label:'TCP order',     color: TXT,      dur: 1.4 },
+    { from: right(N.gateway),  to: left(N.ring),     label:'enqueue',       color: Y,        dur: 1.0 },
+    { from: right(N.ring),     to: left(N.engine),   label:'dequeue',       color: Y,        dur: 1.0 },
+    { from: bottom(N.engine),  to: top(N.fill),      label:'fill event',    color: '#a855f7',dur: 1.2, bold: true },
+    { from: bottom(N.fill),    to: top(N.upsert),    label:'vector embed',  color: '#a855f7',dur: 1.2, bold: true },
+    { from: right(N.upsert),   to: left(N.hnsw),     label:'index',         color: C,        dur: 1.0 },
+    { from: right(N.hnsw),     to: left(N.wal),      label:'persist',       color: C,        dur: 1.0 },
+    { from: bottom(N.upsert),  to: top(N.search),    label:'ANN query',     color: G,        dur: 1.1 },
+  ];
+
+  // Build sequential pulse chain
+  buildPulses();
+}
+
+// ── PULSES ──
+// Each pulse travels one edge. They are chained: when one finishes
+// its edge it triggers the next (or wraps to start).
+let pulseChain = [];
+let activePulseIdx = 0;
+let pulseT = 0; // 0..1 along current edge
+
+function buildPulses() {
+  pulseChain = edges.map((e, i) => ({
+    edge: e,
+    t: 0,
+    active: i === 0,
+  }));
+  activePulseIdx = 0;
+  pulseT = 0;
+}
+
+// ── NODE FLASH ──
+// nodeFlash[id] = 0..1 brightness
+let nodeFlash = {};
+
+// ── HELPERS ──
+function roundRect(x, y, w, h, r) {
+  cx.beginPath();
+  cx.moveTo(x + r, y);
+  cx.lineTo(x + w - r, y);
+  cx.quadraticCurveTo(x + w, y, x + w, y + r);
+  cx.lineTo(x + w, y + h - r);
+  cx.quadraticCurveTo(x + w, y + h, x + w - r, y + h);
+  cx.lineTo(x + r, y + h);
+  cx.quadraticCurveTo(x, y + h, x, y + h - r);
+  cx.lineTo(x, y + r);
+  cx.quadraticCurveTo(x, y, x + r, y);
+  cx.closePath();
+}
+
+function lerp(a, b, t) { return a + (b - a) * t; }
+
+function hexToRgb(hex) {
+  const r = parseInt(hex.slice(1,3),16);
+  const g = parseInt(hex.slice(3,5),16);
+  const b = parseInt(hex.slice(5,7),16);
+  return [r,g,b];
+}
+
+function colorWithAlpha(hex, a) {
+  const [r,g,b] = hexToRgb(hex);
+  return `rgba(${r},${g},${b},${a})`;
+}
+
+// ── DRAW NODE ──
+function drawNode(n, flash) {
+  const { x, y, w, h, label, sublabel, color, icon } = n;
+  const r = 10;
+  const glow = flash > 0.01;
+
+  if (glow) {
+    cx.save();
+    cx.shadowColor = color;
+    cx.shadowBlur  = 20 * flash;
+    roundRect(x, y, w, h, r);
+    cx.fillStyle = colorWithAlpha(color, 0.08 + 0.14 * flash);
+    cx.fill();
+    cx.restore();
+  }
+
+  // Border
+  roundRect(x, y, w, h, r);
+  cx.strokeStyle = glow ? colorWithAlpha(color, 0.6 + 0.4*flash) : colorWithAlpha(color, 0.25);
+  cx.lineWidth = glow ? 1.5 : 1;
+  cx.fillStyle = '#0f0f0e';
+  cx.fill();
+  cx.stroke();
+
+  // Top accent line
+  cx.beginPath();
+  cx.moveTo(x + 20, y);
+  cx.lineTo(x + w - 20, y);
+  cx.strokeStyle = colorWithAlpha(color, glow ? 0.9 : 0.35);
+  cx.lineWidth = 1.5;
+  cx.stroke();
+
+  // Icon
+  cx.font = '14px serif';
+  cx.textAlign = 'left';
+  cx.fillText(icon, x + 10, y + 22);
+
+  // Label
+  cx.font = `600 10px ${MUT}`;
+  cx.font = '600 10px "JetBrains Mono", monospace';
+  cx.fillStyle = glow ? color : TXT;
+  cx.textAlign = 'left';
+  cx.fillText(label.toUpperCase(), x + 30, y + 22);
+
+  // Sublabel
+  cx.font = '400 9px "JetBrains Mono", monospace';
+  cx.fillStyle = MUT;
+  cx.fillText(sublabel, x + 30, y + 36);
+}
+
+// ── DRAW EDGE ──
+function drawEdge(e) {
+  const { from, to, color, label, bold } = e;
+  cx.beginPath();
+  // Bezier for vertical edges, straight for horizontal
+  const dx = Math.abs(to.x - from.x);
+  const dy = Math.abs(to.y - from.y);
+  if (dy > dx) {
+    // vertical-ish: use cubic bezier
+    const cy1 = from.y + dy * 0.5;
+    const cy2 = to.y   - dy * 0.5;
+    cx.moveTo(from.x, from.y);
+    cx.bezierCurveTo(from.x, cy1, to.x, cy2, to.x, to.y);
+  } else {
+    cx.moveTo(from.x, from.y);
+    cx.lineTo(to.x, to.y);
+  }
+  cx.strokeStyle = colorWithAlpha(color, 0.18);
+  cx.lineWidth = bold ? 1.5 : 1;
+  cx.setLineDash([4, 4]);
+  cx.stroke();
+  cx.setLineDash([]);
+
+  // Edge label midpoint
+  const mx = lerp(from.x, to.x, 0.5);
+  const my = lerp(from.y, to.y, 0.5);
+  cx.font = '9px "JetBrains Mono", monospace';
+  cx.fillStyle = colorWithAlpha(color, 0.5);
+  cx.textAlign = 'center';
+  cx.fillText(label, mx, my - 4);
+}
+
+// ── DRAW PULSE ──
+function drawPulse(e, t) {
+  const { from, to, color, bold } = e;
+  const dx = Math.abs(to.x - from.x);
+  const dy = Math.abs(to.y - from.y);
+
+  // Evaluate bezier point
+  let px, py;
+  if (dy > dx) {
+    const cy1y = from.y + dy * 0.5;
+    const cy2y = to.y   - dy * 0.5;
+    // cubic bezier
+    const mt = 1 - t;
+    px = mt*mt*mt*from.x + 3*mt*mt*t*from.x + 3*mt*t*t*to.x + t*t*t*to.x;
+    py = mt*mt*mt*from.y + 3*mt*mt*t*cy1y  + 3*mt*t*t*cy2y  + t*t*t*to.y;
+  } else {
+    px = lerp(from.x, to.x, t);
+    py = lerp(from.y, to.y, t);
+  }
+
+  const r = bold ? 5 : 4;
+
+  // Glow trail
+  const grad = cx.createRadialGradient(px, py, 0, px, py, r * 4);
+  grad.addColorStop(0, colorWithAlpha(color, 0.7));
+  grad.addColorStop(1, colorWithAlpha(color, 0));
+  cx.beginPath();
+  cx.arc(px, py, r * 4, 0, Math.PI * 2);
+  cx.fillStyle = grad;
+  cx.fill();
+
+  // Core dot
+  cx.beginPath();
+  cx.arc(px, py, r, 0, Math.PI * 2);
+  cx.fillStyle = color;
+  cx.shadowColor = color;
+  cx.shadowBlur  = 12;
+  cx.fill();
+  cx.shadowBlur = 0;
+}
+
+// ── DRAW TITLE LABELS ──
+function drawLabels() {
+  // TITAN label
+  const titanNodes = nodes.filter(n => ['gateway','ring','engine'].includes(n.id));
+  if (titanNodes.length) {
+    const lx = titanNodes[0].x - 2;
+    const rx = titanNodes[titanNodes.length-1].x + titanNodes[titanNodes.length-1].w + 2;
+    const ty = titanNodes[0].y - 22;
+    cx.font = '700 9px "JetBrains Mono", monospace';
+    cx.fillStyle = colorWithAlpha(Y, 0.55);
+    cx.textAlign = 'left';
+    cx.fillText('TITAN — EXECUTION LAYER', lx, ty);
+    cx.beginPath(); cx.moveTo(lx, ty+4); cx.lineTo(rx, ty+4);
+    cx.strokeStyle = colorWithAlpha(Y, 0.15); cx.lineWidth = 1; cx.stroke();
+  }
+  // VAJRA label
+  const vajraNodes = nodes.filter(n => ['upsert','hnsw','wal'].includes(n.id));
+  if (vajraNodes.length) {
+    const lx = vajraNodes[0].x - 2;
+    const rx = vajraNodes[vajraNodes.length-1].x + vajraNodes[vajraNodes.length-1].w + 2;
+    const ty = vajraNodes[0].y - 22;
+    cx.font = '700 9px "JetBrains Mono", monospace';
+    cx.fillStyle = colorWithAlpha(C, 0.55);
+    cx.textAlign = 'left';
+    cx.fillText('VAJRA — MEMORY LAYER', lx, ty);
+    cx.beginPath(); cx.moveTo(lx, ty+4); cx.lineTo(rx, ty+4);
+    cx.strokeStyle = colorWithAlpha(C, 0.15); cx.lineWidth = 1; cx.stroke();
+  }
+}
+
+// ── DRAW STATS BAR ──
+function drawStats(tps) {
+  const bh = 28;
+  const by = H - bh;
+  cx.fillStyle = '#0c0c0b';
+  cx.fillRect(0, by, W, bh);
+  cx.beginPath(); cx.moveTo(0, by); cx.lineTo(W, by);
+  cx.strokeStyle = BOR; cx.lineWidth = 1; cx.stroke();
+
+  const items = [
+    { label: 'matches/sec', val: tps.toLocaleString(), color: Y },
+    { label: 'P99 latency', val: '<78ns',              color: C },
+    { label: 'consensus',   val: 'Raft',               color: '#a855f7' },
+    { label: 'hot alloc',   val: 'ZERO',               color: G },
+  ];
+  const iw = W / items.length;
+  items.forEach((it, i) => {
+    const ix = i * iw + iw/2;
+    cx.font = '700 10px "JetBrains Mono", monospace';
+    cx.fillStyle = it.color;
+    cx.textAlign = 'center';
+    cx.fillText(it.val, ix, by + 11);
+    cx.font = '400 8px "JetBrains Mono", monospace';
+    cx.fillStyle = MUT;
+    cx.fillText(it.label, ix, by + 22);
+  });
+}
+
+// ── ANIMATION LOOP ──
+let last = 0;
+const PULSE_SPEED = 0.55; // edges per second
+let tps = 0;
+
+function frame(ts) {
+  requestAnimationFrame(frame);
+  const dt = Math.min((ts - last) / 1000, 0.05);
+  last = ts;
+
+  // Animate TPS counter
+  const targetTps = 12800000;
+  tps = tps < targetTps ? Math.min(targetTps, tps + targetTps * dt * 0.4) : targetTps;
+
+  // Advance pulse
+  pulseT += PULSE_SPEED * dt;
+  if (pulseT >= 1) {
+    // Flash destination node
+    const edge = edges[activePulseIdx];
+    // Find node near edge.to
+    const arrivedNode = nodes.find(n => {
+      const cx0 = n.x + n.w/2, cy0 = n.y + n.h/2;
+      return Math.hypot(cx0 - edge.to.x, cy0 - edge.to.y) < 80;
+    });
+    if (arrivedNode) nodeFlash[arrivedNode.id] = 1;
+
+    pulseT = 0;
+    activePulseIdx = (activePulseIdx + 1) % edges.length;
+  }
+
+  // Decay flashes
+  Object.keys(nodeFlash).forEach(id => {
+    nodeFlash[id] = Math.max(0, nodeFlash[id] - dt * 2.5);
+  });
+
+  // ── DRAW ──
+  cx.clearRect(0, 0, W, H);
+  cx.fillStyle = BG;
+  cx.fillRect(0, 0, W, H);
+
+  // subtle grid
+  cx.strokeStyle = 'rgba(255,255,255,0.02)';
+  cx.lineWidth = 1;
+  for (let gx = 0; gx < W; gx += 40) { cx.beginPath(); cx.moveTo(gx,0); cx.lineTo(gx,H); cx.stroke(); }
+  for (let gy = 0; gy < H; gy += 40) { cx.beginPath(); cx.moveTo(0,gy); cx.lineTo(W,gy); cx.stroke(); }
+
+  // Edges
+  edges.forEach(e => drawEdge(e));
+
+  // Labels
+  drawLabels();
+
+  // Nodes
+  nodes.forEach(n => drawNode(n, nodeFlash[n.id] || 0));
+
+  // Active pulse
+  drawPulse(edges[activePulseIdx], pulseT);
+
+  // Stats bar
+  drawStats(Math.floor(tps));
+}
+
+resize();
+window.addEventListener('resize', resize);
+requestAnimationFrame(frame);
+</script>
+</body>
+</html>
