@@ -64,11 +64,11 @@ const chapters = [
     id: "stack",
     marker: "01 / unified infrastructure",
     title: "HFT Stack",
-    meta: "RUST · RAFT · LOCK-FREE · HNSW",
+    meta: "RUST / RAFT / LOCK-FREE / HNSW",
     copy:
       "A complete HFT infrastructure built from first principles. Titan matches 12.8M orders/sec and feeds fill events into Vajra for real-time pattern recognition - two independent Raft clusters operating as one fault-tolerant stack.",
     bullets: ["12.8M matches/sec", "dual Raft consensus", "zero-alloc hot path"],
-    links: [{ href: links.hftStackDemo, label: "Open unified demo →" }],
+    links: [{ href: links.hftStackDemo, label: "Open unified demo ->" }],
     navLabel: "HFT Stack",
     backgroundIframe: links.hftStackAnimation
   },
@@ -82,7 +82,7 @@ const chapters = [
     bullets: ["12.8M matches/sec", "sub-microsecond median latency", "zero-allocation hot path"],
     links: [
       { href: links.titanRepo, label: "Open repository" },
-      { href: links.titanDemo, label: "Live demo →" }
+      { href: links.titanDemo, label: "Live demo ->" }
     ],
     navLabel: "Titan"
   },
@@ -96,7 +96,7 @@ const chapters = [
     bullets: ["custom Raft consensus", "HNSW search", "chaos-tested failover"],
     links: [
       { href: links.vajraRepo, label: "Open repository" },
-      { href: links.vajraDemo, label: "Live demo →" }
+      { href: links.vajraDemo, label: "Live demo ->" }
     ],
     navLabel: "Vajra"
   },
@@ -183,10 +183,7 @@ function HeroTypeLine({ phrases, disabled }) {
         ? currentPhrase.slice(0, displayText.length - 1)
         : currentPhrase.slice(0, displayText.length + 1);
 
-      timeoutId = window.setTimeout(
-        () => setDisplayText(nextText),
-        isDeleting ? 34 : 58
-      );
+      timeoutId = window.setTimeout(() => setDisplayText(nextText), isDeleting ? 34 : 58);
     }
 
     return () => window.clearTimeout(timeoutId);
@@ -268,6 +265,7 @@ export default function PortfolioPage() {
     };
 
     let animationFrame = 0;
+
     const scheduleUpdate = () => {
       window.cancelAnimationFrame(animationFrame);
       animationFrame = window.requestAnimationFrame(updateActiveChapter);
@@ -282,7 +280,7 @@ export default function PortfolioPage() {
       window.removeEventListener("scroll", scheduleUpdate);
       window.removeEventListener("resize", scheduleUpdate);
     };
-  }, [chapterNavItems]);
+  }, []);
 
   useEffect(
     () => () => {
@@ -306,14 +304,19 @@ export default function PortfolioPage() {
     });
   };
 
-  const handleCopyEmail = async () => {
+  const handleEmail = async () => {
+    let copied = false;
+
     try {
       if (navigator.clipboard?.writeText) {
         await navigator.clipboard.writeText(links.emailAddress);
-      } else {
-        throw new Error("Clipboard API unavailable");
+        copied = true;
       }
+    } catch (error) {
+      copied = false;
+    }
 
+    if (copied) {
       setCopiedEmail(true);
 
       if (copyResetRef.current) {
@@ -323,9 +326,9 @@ export default function PortfolioPage() {
       copyResetRef.current = window.setTimeout(() => {
         setCopiedEmail(false);
       }, 2000);
-    } catch (error) {
-      window.location.href = `mailto:${links.emailAddress}`;
     }
+
+    window.location.href = `mailto:${links.emailAddress}`;
   };
 
   return (
@@ -350,7 +353,7 @@ export default function PortfolioPage() {
 
       {copiedEmail && (
         <div className="copy-toast" role="status" aria-live="polite">
-          Copied ✓
+          Email copied
         </div>
       )}
 
@@ -426,7 +429,9 @@ export default function PortfolioPage() {
                     >
                       Begin the signal
                     </button>
-                    <a href={links.resume} className="button secondary" download>Download resume</a>
+                    <a href={links.resume} className="button secondary" download>
+                      Download resume
+                    </a>
                   </div>
                   <section className="proof-rail" aria-label="Credibility highlights">
                     {signals.map((signal) => (
@@ -471,16 +476,18 @@ export default function PortfolioPage() {
                     ))}
                   </div>
                   <div className="contact-grid">
-                    <button
-                      type="button"
-                      className="contact-action"
-                      onClick={handleCopyEmail}
-                    >
-                      {copiedEmail ? "Copied ✓" : "Copy email"}
+                    <button type="button" className="contact-action" onClick={handleEmail}>
+                      {copiedEmail ? "Email copied" : "Email"}
                     </button>
-                    <a className="contact-action" href={links.github} target="_blank" rel="noreferrer">GitHub</a>
-                    <a className="contact-action" href={links.linkedin} target="_blank" rel="noreferrer">LinkedIn</a>
-                    <a className="contact-action" href={links.resume} download>Resume</a>
+                    <a className="contact-action" href={links.github} target="_blank" rel="noreferrer">
+                      GitHub
+                    </a>
+                    <a className="contact-action" href={links.linkedin} target="_blank" rel="noreferrer">
+                      LinkedIn
+                    </a>
+                    <a className="contact-action" href={links.resume} download>
+                      Resume
+                    </a>
                   </div>
                   <p className="final-note">
                     Send the hardest systems problem on your backlog. I will bring benchmarks,
