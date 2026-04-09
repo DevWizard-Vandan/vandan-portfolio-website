@@ -242,7 +242,11 @@ button {
   display: grid;
   align-items: center;
   justify-items: start;
-  padding: clamp(92px, 12vh, 124px) clamp(18px, 4vw, 68px) clamp(56px, 9vh, 96px);
+  padding:
+    clamp(92px, 12vh, 124px)
+    clamp(92px, 10vw, 152px)
+    clamp(56px, 9vh, 96px)
+    clamp(18px, 4vw, 68px);
 }
 
 .chapter-has-media {
@@ -300,6 +304,10 @@ button {
 
 .chapter-contact .chapter-card {
   width: min(940px, 100%);
+}
+
+.chapter-stack .chapter-card {
+  width: min(520px, 100%);
 }
 
 .chapter-marker {
@@ -396,6 +404,11 @@ button {
   background: rgba(6, 10, 18, 0.85);
   box-shadow: 0 38px 120px rgba(0, 0, 0, 0.32);
   pointer-events: none;
+}
+
+.chapter-stack .chapter-media {
+  left: clamp(440px, 43vw, 620px);
+  right: clamp(78px, 9vw, 136px);
 }
 
 .chapter-media iframe {
@@ -597,7 +610,7 @@ button {
 .chapter-nav {
   position: fixed;
   top: 50%;
-  right: clamp(16px, 3vw, 30px);
+  right: clamp(12px, 2vw, 18px);
   z-index: 45;
   display: flex;
   flex-direction: column;
@@ -610,7 +623,7 @@ button {
   display: inline-flex;
   align-items: center;
   justify-content: flex-end;
-  width: 18px;
+  width: 14px;
   height: 18px;
   padding: 0;
   color: var(--muted);
@@ -630,7 +643,7 @@ button {
 .chapter-nav-label {
   position: absolute;
   top: 50%;
-  right: 24px;
+  right: 20px;
   transform: translateY(-50%);
   border: 1px solid rgba(226, 232, 240, 0.12);
   border-radius: 999px;
@@ -648,7 +661,6 @@ button {
 }
 
 .chapter-nav-button:hover .chapter-nav-label,
-.chapter-nav-button.is-active .chapter-nav-label,
 .chapter-nav-button:focus-visible .chapter-nav-label {
   opacity: 1;
   transform: translateY(-50%) translateX(-4px);
