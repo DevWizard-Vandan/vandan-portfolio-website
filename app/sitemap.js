@@ -1,5 +1,6 @@
 export default function sitemap() {
-  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || "https://vandan-sharma.dev";
+  const siteUrl =
+    process.env.NEXT_PUBLIC_SITE_URL || "https://vandan-portfolio-website.vercel.app";
 
   return [
     {
