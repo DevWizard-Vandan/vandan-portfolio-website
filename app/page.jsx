@@ -2,7 +2,7 @@ import PortfolioPage from "@/components/PortfolioPage";
 
 const sameAs = [
   "https://github.com/DevWizard-Vandan",
-  "https://linkedin.com/in/vandan-sharma-682536330",
+  "https://www.linkedin.com/in/vandan-sharma-682536330",
   "https://credly.com/vandan-sharma"
 ];
 
@@ -14,7 +14,7 @@ const projectWorks = [
     codeRepository: "https://github.com/DevWizard-Vandan/Titan",
     programmingLanguage: "Rust",
     description:
-      "Ultra-low-latency matching engine achieving 12.8M matches per second with lock-free, cache-aware hot paths."
+      "Ultra low-latency matching engine achieving 12.8M matches per second with lock-free and cache-aware hot paths."
   },
   {
     "@context": "https://schema.org",
@@ -23,7 +23,7 @@ const projectWorks = [
     codeRepository: "https://github.com/DevWizard-Vandan/Vajra",
     programmingLanguage: "Rust",
     description:
-      "Distributed vector database with custom Raft consensus, WAL recovery, and HNSW search."
+      "Distributed vector database with custom Raft consensus, WAL recovery, HNSW-style search, and Titan fill-event ingestion."
   },
   {
     "@context": "https://schema.org",
@@ -32,7 +32,7 @@ const projectWorks = [
     codeRepository: "https://github.com/DevWizard-Vandan/parameter-golf",
     programmingLanguage: "Python",
     description:
-      "OpenAI Parameter Golf record-track entry scoring 1.2392 with a 10.9MB artifact."
+      "OpenAI Parameter Golf record-track work with score 1.2392, peak global rank 20, and a 10.9MB artifact."
   },
   {
     "@context": "https://schema.org",
@@ -40,7 +40,7 @@ const projectWorks = [
     name: "Radhe AI",
     codeRepository: "https://github.com/DevWizard-Vandan/radhe-ai",
     programmingLanguage: "Rust",
-    description: "Fully offline AI study CLI powered by a quantized Qwen2.5-Coder model."
+    description: "Offline Rust AI CLI powered by quantized Qwen2.5-Coder through llama.cpp."
   },
   {
     "@context": "https://schema.org",
@@ -49,7 +49,7 @@ const projectWorks = [
     codeRepository: "https://github.com/DevWizard-Vandan/whisper-net",
     programmingLanguage: ["Python", "JavaScript"],
     description:
-      "Applied acoustics and telecommunications research project implementing a software-defined acoustic modem."
+      "Applied acoustics and telecoms research project implementing an acoustic modem stack."
   }
 ];
 
@@ -75,8 +75,9 @@ export default function Home() {
         "Vector search",
         "Rust",
         "Applied AI",
+        "Quantitative research",
         "Model compression",
-        "Quantitative research"
+        "Digital signal processing"
       ]
     },
     {

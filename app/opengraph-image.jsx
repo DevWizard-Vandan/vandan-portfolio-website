@@ -19,12 +19,12 @@ export default function Image() {
           flexDirection: "column",
           justifyContent: "space-between",
           padding: 72,
-          background: "#07090d",
+          background: "#05070d",
           color: "#f8fafc",
           fontFamily: "Arial"
         }}
       >
-        <div style={{ fontSize: 28, color: "#56d6ff" }}>
+        <div style={{ fontSize: 28, color: "#7dd3fc" }}>
           Vandan Sharma / Systems / Applied AI / Quant
         </div>
         <div>
@@ -33,7 +33,7 @@ export default function Image() {
           </div>
           <div style={{ display: "flex", gap: 18, marginTop: 42, fontSize: 28 }}>
             <span>12.8M matches/sec</span>
-            <span>Global Rank 20</span>
+            <span>OpenAI rank 20</span>
             <span>WorldQuant Gold</span>
           </div>
         </div>
