@@ -32,12 +32,10 @@ const links = {
 };
 
 const heroPhrases = [
-  "12.8M matches per second.",
-  "WorldQuant Gold.",
-  "OpenAI Parameter Golf rank 20.",
-  "Raft consensus from scratch.",
-  "Zero allocations on the hot path.",
-  "Built for pressure."
+  "Systems engineering / applied AI / quant research",
+  "12.8M matches per second / rank 20 / WorldQuant Gold",
+  "Rust systems / Raft consensus / compressed weights",
+  "Built for pressure"
 ];
 
 const signals = [
@@ -101,7 +99,7 @@ const chapters = [
     marker: "00 / ignition",
     title: "Vandan Sharma",
     copy:
-      "Based in Pune. VIT Pune CSE (AI & ML), expected 2028. Systems engineering, applied AI, and quantitative research work built for pressure: fast paths, distributed memory, compressed weights, and proof that survives a close read.",
+      "Based in Pune. VIT Pune CSE (AI & ML), expected 2028. I build systems, applied AI, and quant-facing infrastructure with an emphasis on fast paths, distributed memory, and work that stands up to scrutiny.",
     cta: true,
     wide: true,
     navLabel: "Ignition",
@@ -113,7 +111,7 @@ const chapters = [
     title: "Competitions & Awards",
     meta: "OPENAI / WORLDQUANT / QUANT RESEARCH",
     copy:
-      "External signal from model compression and quantitative research competitions. This is the fastest read on where the work has already been stress-tested.",
+      "The fastest read on external validation: model compression, quant research, and competitive signal that has already been pressure-tested.",
     bullets: ["OpenAI rank 20", "IQC top 20% globally", "WorldQuant Gold"],
     navLabel: "Awards",
     awards
@@ -124,7 +122,7 @@ const chapters = [
     title: "HFT Stack",
     meta: "RUST / RAFT / LOCK-FREE / HNSW",
     copy:
-      "A complete HFT infrastructure built from first principles. Titan matches 12.8M orders/sec and feeds fill events into Vajra for real-time pattern recognition - two independent Raft clusters operating as one fault-tolerant stack.",
+      "A full HFT stack built from first principles: Titan handles execution, Vajra handles memory and pattern search, and both operate as one fault-tolerant system.",
     bullets: ["12.8M matches/sec", "dual Raft consensus", "zero-alloc hot path"],
     links: [{ href: links.hftStackDemo, label: "Open unified demo ->" }],
     navLabel: "HFT Stack",
@@ -136,7 +134,7 @@ const chapters = [
     title: "Titan",
     meta: "Rust / lock-free / cache-aware",
     copy:
-      "A limit-order-book engine shaped around deterministic hot paths, cache-aligned order structs, SPSC rings, zero-allocation execution, and measured latency instead of hopeful claims.",
+      "A limit-order-book engine shaped around deterministic hot paths, cache-aligned structs, SPSC rings, and measured latency instead of vague claims.",
     bullets: ["12.8M matches/sec", "sub-microsecond median latency", "P50/P99/P99.9 validation"],
     links: [
       { href: links.titanRepo, label: "Open repository" },
@@ -150,7 +148,7 @@ const chapters = [
     title: "Vajra",
     meta: "Rust / Raft / HNSW / async",
     copy:
-      "A distributed vector database with leader election, log replication, write-ahead recovery, and graph search. Titan fill events feed into Vajra for real-time pattern recognition across two Raft clusters.",
+      "A distributed vector database with leader election, log replication, WAL recovery, and graph search. Titan fill events feed Vajra for live pattern recognition.",
     bullets: ["99% Recall@1", "custom Raft consensus", "zero data loss under partitions"],
     links: [
       { href: links.vajraRepo, label: "Open repository" },
@@ -164,7 +162,7 @@ const chapters = [
     title: "Parameter Golf",
     meta: "PyTorch / CUDA / quantization",
     copy:
-      "OpenAI Parameter Golf record-track work: a 26.5M parameter language model compressed to a 10.9MB artifact with custom QAT, Int6 simulation, and 8x H100 DDP training.",
+      "OpenAI Parameter Golf record-track result: a 26.5M parameter language model compressed to 10.9MB with custom QAT, Int6 simulation, and 8x H100 DDP training.",
     bullets: ["Score 1.2392", "Global Rank 20", "10.9MB artifact"],
     links: [{ href: links.parameterGolf, label: "Open repository" }],
     navLabel: "Parameter Golf"
@@ -175,7 +173,7 @@ const chapters = [
     title: "Radhe AI",
     meta: "Rust / llama.cpp / Qwen2.5-Coder / offline",
     copy:
-      "A fully offline Rust CLI that runs quantized Qwen2.5-Coder 1.5B through a llama.cpp subprocess bridge, with a mode-specific prompt compiler for code generation, bug-fixing, notes, quizzes, and REPL-style study.",
+      "A fully offline Rust CLI that runs quantized Qwen2.5-Coder 1.5B through a llama.cpp bridge, with prompt modes for code generation, fixes, notes, quizzes, and REPL-style study.",
     bullets: ["zero cloud dependency", "English / Hindi / Hinglish", "MIT licensed"],
     links: [{ href: links.radheAi, label: "Open repository" }],
     navLabel: "Radhe AI"
@@ -186,14 +184,14 @@ const chapters = [
     title: "WhisperNet",
     meta: "Research / Security / Applied Acoustics & Telecoms",
     copy:
-      "A cross-platform software-defined acoustic modem built as an applied DSP and telecommunications deep dive. It implements PHY, MAC, crypto, and academic stealth layers to understand RF-style protocols at the signal level, not as a hacking tool.",
+      "A cross-platform software-defined acoustic modem built as an applied DSP and telecoms deep dive. It explores PHY, MAC, crypto, and stealth at the signal level as research, not as a hacking tool.",
     bullets: ["BFSK 33.3 bps / OFDM 2,857 bps", "AES-256-GCM + HKDF", "41 physics/math tests"],
     links: [{ href: links.whisperNet, label: "Open repository" }],
     navLabel: "WhisperNet",
     detailItems: [
       "34 OFDM subcarriers, RS(255,223), 16x16 interleaver, repetition-3, ARQ + CRC-16",
       "Replay guard via sequence numbers and timestamps; psychoacoustic masking at -6.0dB SNR",
-      "Python desktop plus zero-dependency vanilla JS PWA disguised as a CASIO calculator"
+      "Python desktop app plus zero-dependency vanilla JS PWA disguised as a CASIO calculator"
     ]
   },
   {
@@ -202,7 +200,7 @@ const chapters = [
     title: "GreenLoop + Cursor",
     meta: "published patent / peer-reviewed paper",
     copy:
-      "GreenLoop marks the patent track. Predictive Cursor marks the paper track. Both sit here because credentials should arrive before curiosity has to work.",
+      "Patent track and paper track, kept together so the proof arrives before the pitch.",
     bullets: ["published patent", "peer-reviewed paper", "metadata links ready when public"],
     navLabel: "Research",
     proofItems: [
@@ -228,7 +226,7 @@ const chapters = [
     title: "Skill Stack",
     meta: "systems / ai / distributed / quant / cloud",
     copy:
-      "Grouped by the problems they solve rather than a flat keyword cloud.",
+      "Grouped by capability, not by buzzword count.",
     navLabel: "Skills",
     skills: skillGroups
   },
@@ -237,7 +235,7 @@ const chapters = [
     marker: "10 / signal",
     title: "Build with rigor. Ship with taste.",
     copy:
-      "Based in Pune. Studying CSE (AI & ML) at VIT Pune. Open to high-intensity internships at AI labs, quantitative research groups, infrastructure teams, and HFT teams.",
+      "Based in Pune. Studying CSE (AI & ML) at VIT Pune. Open to high-intensity internships across AI labs, quant teams, infrastructure, and HFT.",
     final: true
   }
 ];
@@ -252,42 +250,23 @@ const chapterNavItems = chapters
 
 function HeroTypeLine({ phrases, disabled }) {
   const [phraseIndex, setPhraseIndex] = useState(0);
-  const [displayText, setDisplayText] = useState(phrases[0]);
-  const [isDeleting, setIsDeleting] = useState(false);
 
   useEffect(() => {
     if (disabled) {
-      setDisplayText(phrases[0]);
       setPhraseIndex(0);
-      setIsDeleting(false);
       return undefined;
     }
 
-    const currentPhrase = phrases[phraseIndex];
-    let timeoutId = 0;
+    const intervalId = window.setInterval(() => {
+      setPhraseIndex((currentIndex) => (currentIndex + 1) % phrases.length);
+    }, 2400);
 
-    if (!isDeleting && displayText === currentPhrase) {
-      timeoutId = window.setTimeout(() => setIsDeleting(true), 1500);
-    } else if (isDeleting && displayText === "") {
-      timeoutId = window.setTimeout(() => {
-        setIsDeleting(false);
-        setPhraseIndex((currentIndex) => (currentIndex + 1) % phrases.length);
-      }, 220);
-    } else {
-      const nextText = isDeleting
-        ? currentPhrase.slice(0, displayText.length - 1)
-        : currentPhrase.slice(0, displayText.length + 1);
-
-      timeoutId = window.setTimeout(() => setDisplayText(nextText), isDeleting ? 34 : 58);
-    }
-
-    return () => window.clearTimeout(timeoutId);
-  }, [disabled, displayText, isDeleting, phraseIndex, phrases]);
+    return () => window.clearInterval(intervalId);
+  }, [disabled, phrases.length]);
 
   return (
     <p className="hero-type-line" aria-live="off">
-      <span>{displayText}</span>
-      {!disabled && <span className="type-caret" aria-hidden="true" />}
+      <span>{phrases[phraseIndex]}</span>
     </p>
   );
 }
