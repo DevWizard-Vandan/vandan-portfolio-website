@@ -1,5 +1,10 @@
 # dependencies
 node_modules
+.npm-cache
+*.tsbuildinfo
+test-results
+playwright-report
+docs/implementation/scroll-recordings
 
 # Next.js
 .next

@@ -1,0 +1,59 @@
+{
+  "date": "2026-10-03T10:16:01.366Z",
+  "method": "Production HTML script references; gzip measured locally, not a field-performance or Lighthouse score.",
+  "initialJavaScriptGzipBytes": 190096,
+  "initialScripts": [
+    {
+      "file": "static/chunks/19mx3mg6lkumu.js",
+      "bytes": 28907,
+      "gzipBytes": 7614
+    },
+    {
+      "file": "static/chunks/1rj7ns8rte9vc.js",
+      "bytes": 229156,
+      "gzipBytes": 71628
+    },
+    {
+      "file": "static/chunks/2z-e6jheq0ftu.js",
+      "bytes": 165979,
+      "gzipBytes": 45185
+    },
+    {
+      "file": "static/chunks/turbopack-30tlrok04socz.js",
+      "bytes": 10946,
+      "gzipBytes": 4302
+    },
+    {
+      "file": "static/chunks/07ijqnbjuovso.js",
+      "bytes": 22174,
+      "gzipBytes": 8884
+    },
+    {
+      "file": "static/chunks/3fntmmi971322.js",
+      "bytes": 14377,
+      "gzipBytes": 3661
+    },
+    {
+      "file": "static/chunks/31ur562ohqs3d.js",
+      "bytes": 19079,
+      "gzipBytes": 7225
+    },
+    {
+      "file": "static/chunks/0cz1d0mv5g_q7.js",
+      "bytes": 112594,
+      "gzipBytes": 39627
+    },
+    {
+      "file": "static/chunks/310vm2bl3xxpt.js",
+      "bytes": 5364,
+      "gzipBytes": 1970
+    }
+  ],
+  "lazyWebGLBundles": [
+    {
+      "file": "static/chunks/1xt3ztb44q_2z.js",
+      "bytes": 861652,
+      "gzipBytes": 227555
+    }
+  ]
+}
